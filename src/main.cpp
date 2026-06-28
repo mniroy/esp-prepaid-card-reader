@@ -59,10 +59,10 @@ String formatCardNumber(String raw) {
 
 void drawHeader(const char* title, uint16_t color) {
   tft.fillScreen(C_BG);
-  tft.fillRoundRect(0, 0, 128, 28, 4, color);
+  tft.fillRoundRect(0, 0, 160, 28, 4, color);
   tft.setTextColor(ST7735_BLACK);
   tft.setTextSize(2);
-  int16_t tx = (128 - (int16_t)strlen(title) * 12) / 2;
+  int16_t tx = (160 - (int16_t)strlen(title) * 12) / 2;
   if (tx < 2) tx = 2;
   tft.setCursor(tx, 6);
   tft.print(title);
@@ -93,11 +93,9 @@ void showCardInfo(const char* cardType, uint16_t headerColor,
   tft.setTextColor(C_WHITE);
   tft.setTextSize(1);
   tft.setCursor(4, 48);
-  tft.print(formatted.substring(0, 9));
-  tft.setCursor(4, 60);
-  tft.print(formatted.substring(9));
+  tft.print(formatted);
 
-  tft.drawFastHLine(0, 76, 128, C_CYAN);
+  tft.drawFastHLine(0, 76, 160, C_CYAN);
 
   tft.setTextColor(C_CYAN);
   tft.setTextSize(1);
@@ -116,6 +114,32 @@ void showCardInfo(const char* cardType, uint16_t headerColor,
   tft.print(bal);
 }
 
+void showReadyScreen() {
+  drawHeader("READY", ST7735_BLUE);
+  
+  tft.setTextColor(C_CYAN);
+  tft.setTextSize(1);
+  tft.setCursor(4, 36);
+  tft.print("CARD NO:");
+
+  tft.setTextColor(0x7BEF); // greyish
+  tft.setTextSize(1);
+  tft.setCursor(4, 48);
+  tft.print("XXXX XXXX XXXX XXXX");
+
+  tft.drawFastHLine(0, 76, 160, C_CYAN);
+
+  tft.setTextColor(C_CYAN);
+  tft.setTextSize(1);
+  tft.setCursor(4, 82);
+  tft.print("BALANCE:");
+
+  tft.setTextColor(0x7BEF);
+  tft.setTextSize(2);
+  tft.setCursor(4, 94);
+  tft.print("Rp 0");
+}
+
 bool isAPDUHandlingSuccess(const uint8_t* response, uint8_t len) {
   if (len < 2) return false;
   uint8_t sw1 = response[len - 2];
@@ -128,10 +152,10 @@ void setup() {
   Serial.println("\nPrepaid Card Reader Starting...");
 
   tft.initR(INITR_BLACKTAB);
-  tft.setRotation(0);
+  tft.setRotation(1); // 1 = landscape
   tft.fillScreen(C_BG);
 
-  showMessage("Prepaid", "Reader Starting...");
+  showReadyScreen();
   delay(800);
 
   SPI.begin();
@@ -147,7 +171,7 @@ void setup() {
   nfc.setPassiveActivationRetries(0x10);
 
   Serial.println("Ready to scan cards.");
-  showMessage("Reader Ready", "Scan card now...");
+  showReadyScreen();
 }
 
 bool checkEMoney() {
@@ -364,7 +388,6 @@ void loop() {
       Serial.println("ISO-DEP card — proceeding with APDUs...");
     }
 
-    showMessage("Processing...", "Keep card close");
     delay(50);
 
     if (checkFlazz()) {
@@ -381,7 +404,7 @@ void loop() {
       delay(2000);
     }
 
-    showMessage("Reader Ready", "Scan card now...");
+    showReadyScreen();
 
     nfc.inRelease();
     nfc.setRFField(0, 0);
