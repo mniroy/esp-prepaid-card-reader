@@ -6,18 +6,14 @@
 #include <PN532.h>
 
 // ── ST7735 Pin Definitions (D1 Mini) ──────────────────────────
-// SOFTWARE SPI: explicitly define MOSI+CLK only.
-// MISO (GPIO12/D6) is NEVER touched by TFT library — PN532 owns it.
-// TFT RST = -1: module has internal power-on reset. GPIO0 must stay FREE.
-// ⚠️ Do NOT connect TFT RST wire to any ESP pin — leave it unconnected
-//    or tie it directly to 3.3V via a 10kΩ resistor.
+// Hardware SPI MUST be used since PN532 shares the same pins.
+// Software SPI would break the hardware SPI peripheral routing.
 #define TFT_CS   4   // D2 (GPIO4)  — TFT Chip Select
 #define TFT_DC   5   // D1 (GPIO5)  — TFT Data/Command
-#define TFT_MOSI 13  // D7 (GPIO13) — TFT MOSI (write-only, no MISO)
-#define TFT_CLK  14  // D5 (GPIO14) — TFT Clock
+#define TFT_RST  2   // D4 (GPIO2)  — TFT Reset (built-in pull-up, boot-safe)
 
-// RST=-1: no external reset pin needed
-Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_CLK, -1);
+// 3-arg constructor = Hardware SPI (uses D5 for SCK, D7 for MOSI automatically)
+Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 // ── PN532 ──────────────────────────────────────────────────────
 // CS: D0 (GPIO16) — avoids GPIO15 boot constraints
